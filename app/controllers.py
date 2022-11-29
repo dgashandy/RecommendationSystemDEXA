@@ -12,13 +12,16 @@ relasiData = [
   ["Apotek Harapan Bangsa", "-3.286404", "128.489214"],
 ]
 
+def getRelasiData():
+  return relasiData
+
 def getLocationParameter(lat, long):
-  response = requests.get("http://dataservice.accuweather.com/locations/v1/cities/geoposition/search", headers={ 'Content-Type': 'application/json' }, params={"apikey": "GLZEVuYXj3Jzj1S0OY9R3tx7e1n6fq1Y", "q": str(lat)+","+str(long), "language":"id-id", "details":"false", "toplevel":"true"})
+  response = requests.get("http://dataservice.accuweather.com/locations/v1/cities/geoposition/search", headers={ 'Content-Type': 'application/json' }, params={"apikey": "wJ7BRhfOwzCc63u5zExI3bnAbz5L7Pl8", "q": str(lat)+","+str(long), "language":"id-id", "details":"false", "toplevel":"true"})
   #print(response.json())
   return response.json()["Key"], response.json()["AdministrativeArea"]["LocalizedName"]
 
 def getWeatherParameter(locationKey):
-  response = requests.get("http://dataservice.accuweather.com/forecasts/v1/daily/5day/"+locationKey, params={"apikey": "GLZEVuYXj3Jzj1S0OY9R3tx7e1n6fq1Y", "language":"en-us", "details":"true", "metric":"true"})
+  response = requests.get("http://dataservice.accuweather.com/forecasts/v1/daily/5day/"+locationKey, params={"apikey": "wJ7BRhfOwzCc63u5zExI3bnAbz5L7Pl8", "language":"en-us", "details":"true", "metric":"true"})
   daily_forecasts = response.json()["DailyForecasts"]
   sum_temp = 0
   for day in daily_forecasts:

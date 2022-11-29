@@ -1,0 +1,125 @@
+{% extends "Layout.html" %}
+{% block head %}
+  <title>Peta Cuaca dan Relasi | Overflow</title>
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.3/dist/leaflet.css" integrity="sha256-kLaT2GOSpHechhsozzB+flnD+zUyjE2LlfWPgU04xyI=" crossorigin=""/>
+  <script src="https://unpkg.com/leaflet@1.9.3/dist/leaflet.js" integrity="sha256-WBkoXOwTeyKclOHuWtc+i2uENFpDZ9YPdf5Hf+D7ewM=" crossorigin=""></script>
+{% endblock %}
+{% block content %}
+<body class="min-h-screen flex flex-col">
+  {% with userData=userData %}
+    {% include 'Navbar.html' %}
+  {% endwith %}
+  <div class="w-full h-full flex flex-col flex-1 bg-gray-50 mt-16 pt-6 pb-8 px-12">
+    <div class="text-3xl text-gray-800 font-medium antialiased">
+      Peta Cuaca dan Persebaran Relasi
+    </div>
+    <div class="mt-2 mb-4">
+      <div class="text-gray-400 py-1">Layer Peta</div>
+      <button id="geo-tab" class="tab-layer-active" onclick="changeLayer(this, 'geo')">Geographical</button>
+      {% if userData.role == 'admin' %}
+      <button id="temp-tab" class="tab-layer" onclick="changeLayer(this, 'temp')">Temperature</button>
+      <button id="prec-tab" class="tab-layer" onclick="changeLayer(this, 'prec')">Precipitation</button>
+      <button id="cloud-tab"class="tab-layer" onclick="changeLayer(this, 'cloud')">Clouds</button>
+      {% endif %}
+    </div>
+    <div id="map" class="w-full flex-1 bg-gray-200 rounded-xl">
+      
+    </div>
+  </div>
+  <nav class="w-full flex justify-center bg-red-600 px-6 py-3">
+    <div class="text-sm text-gray-100 my-auto">
+      &copy; 2022 Overflow
+    </div>
+  </nav>
+</body>
+
+<script>
+  let owmKey = 'ed78938a9b1ff7a2c26cebbc709de646'
+  let lat, lon
+  let map, geoLayer, weatherLayer
+  let userMarker, popup
+  let activeTabLayer = document.getElementById('geo-tab')
+  let relasiData = {{dumpJson(relasiData, default=str)|safe}};
+
+  navigator.geolocation.getCurrentPosition(initMap, (er) => {
+    console.warn(`ERROR(${err.code}): ${err.message}`);
+  }, {
+    enableHighAccuracy: true,
+    timeout: 5000,
+    maximumAge: 0
+  });
+
+  const changeLayer = (elm, newLayer) => {
+    if (activeTabLayer == elm)
+      return
+    activeTabLayer.classList.remove('tab-layer-active')
+    activeTabLayer.classList.add('tab-layer')
+    activeTabLayer = elm
+    activeTabLayer.classList.remove('tab-layer')
+    activeTabLayer.classList.add('tab-layer-active')
+
+    if (map.hasLayer(weatherLayer))
+      map.removeLayer(weatherLayer)
+
+    if (newLayer == 'temp') {
+      weatherLayer = L.tileLayer(`https://tile.openweathermap.org/map/temp_new/{z}/{x}/{y}.png?appid=${owmKey}`, {
+      maxZoom: 19,
+      attribution: '&copy; <a href="https://openweathermap.org">OpenWeather</a>'
+      }).addTo(map)
+    } else if (newLayer == 'prec') {
+      weatherLayer = L.tileLayer(`https://tile.openweathermap.org/map/precipitation_new/{z}/{x}/{y}.png?appid=${owmKey}`, {
+      maxZoom: 19,
+      attribution: '&copy; <a href="https://openweathermap.org">OpenWeather</a>'
+      }).addTo(map)
+    } else if (newLayer == 'cloud') {
+      weatherLayer = L.tileLayer(`https://tile.openweathermap.org/map/clouds_new/{z}/{x}/{y}.png?appid=${owmKey}`, {
+      maxZoom: 19,
+      attribution: '&copy; <a href="https://openweathermap.org">OpenWeather</a>'
+      }).addTo(map)
+    }
+
+  }
+
+  function initMap(pos) {
+    lat = pos.coords.latitude
+    lon = pos.coords.longitude
+
+    map = L.map('map').setView([lat, lon], 4);
+
+    geoLayer = L.tileLayer('http://{s}.tile.osm.org/{z}/{x}/{y}.png', {
+      maxZoom: 19,
+      attribution: '&copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a>'
+    }).addTo(map)
+
+    weatherLayer = L.tileLayer(`https://tile.openweathermap.org/map/temp_new/{z}/{x}/{y}.png?appid=${owmKey}`, {
+      maxZoom: 19,
+      attribution: '&copy; <a href="https://openweathermap.org">OpenWeather</a>'
+    })
+
+    let redMarkerIcon = new L.Icon({
+      iconUrl: 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-red.png',
+      shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/0.7.7/images/marker-shadow.png',
+      iconSize: [25, 41],
+      iconAnchor: [12, 41],
+      popupAnchor: [1, -34],
+      shadowSize: [41, 41]
+    });
+
+    relasiMarkers = relasiData.map((data, index) => {
+      return L.marker([data[1], data[2]], {icon: redMarkerIcon}).addTo(map);
+    })
+    userMarker = L.marker([lat, lon]).addTo(map);
+
+    popup = L.popup()
+
+    map.on('click', (e) => {
+      popup.setLatLng(e.latlng).setContent("Fetching weather info").openOn(map);
+      fetch('https://api.openweathermap.org/data/2.5/weather?lat=' + e.latlng.lat + '&lon=' + e.latlng.lng + '&appid=' + owmKey)
+        .then(r => r.json())
+        .then(data => {
+          popup.setContent(data.weather.map(w => w.description).join(", "))
+        })
+    })
+  }
+</script>
+{% endblock %}

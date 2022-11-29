@@ -1,16 +1,40 @@
-from flask import Flask, request, render_template, jsonify, send_from_directory
+from flask import Flask, g, request, render_template, jsonify, send_from_directory
 #from flask_mysqldb import MySQL
-from app import app, controllers
+from app import app, controllers, auth
+import json
 #import locale
 #import os
 
 #mysql = MySQL(app)
 #app.mysql = mysql
 app.static_folder = 'static'
+app.register_blueprint(auth.authAPI, url_prefix='/auth')
 
 @app.route('/')
+@auth.verifyLogin
+@auth.requireLogin
 def handleHomepage():
-  return send_from_directory(app.static_folder, 'index.html')
+  return render_template('Index.html', userData = g.user)
+  #return send_from_directory(app.static_folder, 'index.html')
+
+@app.route('/login', methods=['GET'])
+def handleLoginPage():
+  return render_template('Login.html')
+
+@app.route('/register', methods=['GET'])
+def handleRegisterPage():
+  return render_template('Register.html')
+
+@app.route('/weathermap', methods=['GET'])
+@auth.verifyLogin
+@auth.requireLogin
+def handleWeatherMap():
+  relasiData = controllers.getRelasiData()
+  return render_template('WeatherMap.html', userData = g.user, relasiData = relasiData, dumpJson = json.dumps)
+
+# @app.route('/relasi', methods=['POST'])
+# def handleRelasi():
+#   return jsonify(controllers.getRelasiData())
 
 @app.route('/recommendation', methods=['POST'])
 def handleRecommendation():

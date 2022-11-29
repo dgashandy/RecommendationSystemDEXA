@@ -3,6 +3,7 @@
 const main = () => {
   //const relasiIdentity = products.relasiIdentity;
   //const productRecommendations = products.recommendation;
+  let products = []
   const url = 'http://localhost:5000/recommendation';
   
   const getRecommendation = async (relasiId) => {
@@ -16,7 +17,6 @@ const main = () => {
   
     const responseJson = await response.json();
     let relasiIdentity = responseJson.relasi;
-    let products = []
     responseJson.recommendation.forEach(element => {
       products.push(element);
     });
@@ -142,17 +142,17 @@ const main = () => {
     const detailContainer = document.querySelector('#product-section');
     detailContainer.innerHTML += `
       <h1 class="product label">Identitas Produk</h1>
-      <p class="description">"[\"Purpose Each dose contains equal parts of: Ceratostigma willmottianum, flos (Cerato) 5X HPUS...........give too much weight to other's opinions Ferrum Phos 12X HPUS..................................................loss of voice from strain, sore throat of singers and speakers; painful swallowing; congestion of throat Hottonia palustris, flos (Water Violet) 5X HPUS.................problems engaging in discussions Kali Mur 6X HPUS..........................................................loss of voice; swollen glands; swollen throat Kali Phos 6X HPUS........................................................sore throat; speech slow Mag Phos 12X HPUS.....................................................constricted feeling of throat; voice sudden and shrill Mimulus guttatus, flos (Mimulus) 5X HPUS.......................occasional speech difficulties Nat Mur 6X HPUS...........................................................sore throat; dryness of throat Nat Sulph 6X HPUS........................................................dry throat; inflamed throat Silicea 12X HPUS...........................................................sore throat with accumulation of mucus in throat\"]",</p>
+      <p class="description">${product[6]}</p>
       <h1 class="dosage label">Dosis Penggunaan</h1>
-      <p>"[\"Purpose Each dose contains equal parts of: Ceratostigma willmottianum, flos (Cerato) 5X HPUS...........give too much weight to other's opinions Ferrum Phos 12X HPUS..................................................loss of voice from strain, sore throat of singers and speakers; painful swallowing; congestion of throat Hottonia palustris, flos (Water Violet) 5X HPUS.................problems engaging in discussions Kali Mur 6X HPUS..........................................................loss of voice; swollen glands; swollen throat Kali Phos 6X HPUS........................................................sore throat; speech slow Mag Phos 12X HPUS.....................................................constricted feeling of throat; voice sudden and shrill Mimulus guttatus, flos (Mimulus) 5X HPUS.......................occasional speech difficulties Nat Mur 6X HPUS...........................................................sore throat; dryness of throat Nat Sulph 6X HPUS........................................................dry throat; inflamed throat Silicea 12X HPUS...........................................................sore throat with accumulation of mucus in throat\"]",</p>
+      <p>${product[7]}</p>
       <div class="flex">
         <div id="indication">
           <h1 class="indication label">Indikasi dan Kegunaan</h1>
-          <p>"[\"Purpose Each dose contains equal parts of: Ceratostigma willmottianum, flos (Cerato) 5X HPUS...........give too much weight to other's opinions Ferrum Phos 12X HPUS..................................................loss of voice from strain, sore throat of singers and speakers; painful swallowing; congestion of throat Hottonia palustris, flos (Water Violet) 5X HPUS.................problems engaging in discussions Kali Mur 6X HPUS..........................................................loss of voice; swollen glands; swollen throat Kali Phos 6X HPUS........................................................sore throat; speech slow Mag Phos 12X HPUS.....................................................constricted feeling of throat; voice sudden and shrill Mimulus guttatus, flos (Mimulus) 5X HPUS.......................occasional speech difficulties Nat Mur 6X HPUS...........................................................sore throat; dryness of throat Nat Sulph 6X HPUS........................................................dry throat; inflamed throat Silicea 12X HPUS...........................................................sore throat with accumulation of mucus in throat\"]",</p>
+          <p>${product[5]}</p>
         </div>
         <div id="purpose">
           <h1 class="purpose label">Tujuan</h1>
-          <p>"[\"Purpose Each dose contains equal parts of: Ceratostigma willmottianum, flos (Cerato) 5X HPUS...........give too much weight to other's opinions Ferrum Phos 12X HPUS..................................................loss of voice from strain, sore throat of singers and speakers; painful swallowing; congestion of throat Hottonia palustris, flos (Water Violet) 5X HPUS.................problems engaging in discussions Kali Mur 6X HPUS..........................................................loss of voice; swollen glands; swollen throat Kali Phos 6X HPUS........................................................sore throat; speech slow Mag Phos 12X HPUS.....................................................constricted feeling of throat; voice sudden and shrill Mimulus guttatus, flos (Mimulus) 5X HPUS.......................occasional speech difficulties Nat Mur 6X HPUS...........................................................sore throat; dryness of throat Nat Sulph 6X HPUS........................................................dry throat; inflamed throat Silicea 12X HPUS...........................................................sore throat with accumulation of mucus in throat\"]",</p>
+          <p>${product[4]}</p>
         </div>
       </div>
       <h1 class="condition label">Hasil Analisis</h1>
@@ -179,7 +179,7 @@ const main = () => {
 
   const findProduct = (productId) => {
     let product = null;
-    for (const element of productRecommendations) {
+    for (const element of products) {
       if (element[0] == productId);
       product = element;
     }

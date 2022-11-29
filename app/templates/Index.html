@@ -1,0 +1,419 @@
+{% extends 'Layout.html' %}
+{% block head %}
+  <title>Recommendation Engine | Overflow</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: Roboto, Arial, sans-serif;
+      font-size: 16px;
+    }
+
+    header {
+      height: 54px;
+      background-color: #DB2424;
+      display: flex;
+      align-items: center;
+      justify-content: space-around;
+    }
+
+    header h1 {
+      font-size: 1.1em;
+      color: #FFF0F0;
+    }
+
+    .flex {
+      display: flex;
+      justify-content: space-around;
+      align-items: flex-start;
+    }
+
+    main {
+      width: 80%;
+      margin: auto;
+    }
+
+    #relasi-form {
+      margin-top: 24px;
+    }
+
+    label {
+      color: #212121;
+      font-size: 0.9em;
+    }
+
+    #location-section, #condition-section {
+      margin-top: 32px;
+    }
+
+    #location-section {
+      margin-right: 8px;
+    }
+
+    #location-section h1, #condition-section h1 {
+      font-size: 1.1em;
+      padding-bottom: 12px;
+    }
+
+    table {
+      text-align: left;
+    }
+
+    table th {
+      width: 140px;
+      font-size: 0.9em;
+      color: #424242;
+      padding-left: 12px;
+      padding-bottom: 8px;
+    }
+
+    table td {
+      padding-bottom: 8px;
+      font-size: 0.9em;
+      color: rgb(83, 83, 83);
+    }
+
+    .label {
+      margin-top: 32px;
+      margin-bottom: 16px;
+      font-size: 1.1em;
+      background-color: #FAF0F0;
+      padding: 12px;
+      border-radius: 8px;
+      color: #DB2424;
+      padding-left: 20px;
+    }
+
+    .grid-container {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      grid-gap: 20px;
+    }
+
+    .grid-item { 
+      border-radius: 8px;
+      position: relative;
+      cursor: pointer;
+      background-color: rgba(216, 24, 24, .8);
+    }
+
+    .grid-item img {
+      width: 100%;
+      max-width: 260px;
+    }
+
+    .identity-content {
+      height: 70px;
+      margin-top: 4px;
+      position: relative;
+    }
+
+    .title {
+      margin-bottom: 12px;
+      font-size: 1em;
+      font-weight: 700;
+      color: #FFFFFF;
+      margin-left: 12px;
+    }
+
+    .release-date {
+      text-align: right;
+      font-size: 0.8em;
+      font-weight: 400;
+      color: #FFFFFF;
+      opacity: 0.5;
+      position: absolute;
+      bottom: 12px;
+      right: 12px;
+    }
+
+    .rating {
+      width: fit-content;
+      text-indent: 0px !important;
+      padding: 8px 12px;
+      border-radius: 20px;
+      font-size: 0.9em;
+      font-weight: 700;
+      color: green;
+      background-color: #FFFFFF;
+      position: absolute;
+      right: 12px;
+      top: 12px;
+    }
+
+    .id-aaccess {
+      width: 100%;
+      height: 100%;
+      position: absolute;
+      left: 0;
+      top: 0;
+      z-index: 1;
+    }
+
+    p {
+      text-indent: 32px;
+      font-size: 0.9em;
+      color: #212121;
+      text-align: justify;
+    }
+
+    #indication {
+      margin-right: 48px;
+    }
+
+    footer {
+      height: 48px;
+      width: 100%;
+      margin-top: 32px;
+      background-color: #DB2424;
+      display: flex;
+      justify-content: space-around;
+      align-items: center;
+    }
+
+    footer p {
+      color: #FAF0F0;
+      font-weight: 700;
+    }
+  </style>
+{% endblock %}
+
+{% block content %}
+<body class="min-h-screen flex flex-col">
+  {% with userData=userData %}
+    {% include 'Navbar.html' %}
+  {% endwith %}
+  <main class="mt-16 flex-1">
+    <form id="relasi-form" onsubmit="submitRelasi(event)">
+      <label for="relasi">Nama Relasi:</label><br>
+      <select id="relasi" name="relasi-select" class="text-gray-600 w-48 text-sm border-2 border-gray-300 rounded-lg py-2 px-3 mt-2">
+        <option value="1">Relasi 1</option>
+        <option value="2">Relasi 2</option>
+        <option value="3">Relasi 3</option>
+        <option value="4">Relasi 4</option>
+        <option value="5">Relasi 5</option>
+      </select>
+      <button type="submit" id="submit-relasi-button" class="bg-red-600 text-gray-100 text-sm rounded-lg py-2 px-3 mx-2">Cari Produk</button>
+    </form>
+    <div class="main-container"></div>
+    <div id="product-section"></div>
+  </main>
+  <nav class="w-full flex justify-center bg-red-600 px-6 py-3">
+    <div class="text-sm text-gray-100 my-auto">
+      &copy; 2022 Overflow
+    </div>
+  </nav>
+</body>
+
+<script>
+  //const main = () => {
+    //const relasiIdentity = products.relasiIdentity;
+    //const productRecommendations = products.recommendation;
+    let products = []
+    const url = 'http://localhost:5000/recommendation';
+
+    window.onload = () => {
+      document.getElementById('submit-relasi-button').click()
+    }
+    
+    const getRecommendation = async (relasiId) => {
+      const response = await fetch(url, {
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        method: 'POST',
+        body: JSON.stringify({relasiId}),
+      });
+    
+      const responseJson = await response.json();
+      let relasiIdentity = responseJson.relasi;
+      responseJson.recommendation.forEach(element => {
+        products.push(element);
+      });
+    
+      //RenderReccomendation();
+      renderAllRecommendation(relasiIdentity, products);
+    };
+
+    // const getRecommendation = () => {
+    //   renderAllRecommendation(relasiIdentity, productRecommendations);
+    // };
+
+    const renderAllRecommendation = (identity, products) => {
+      const container = document.querySelector('.main-container');
+      container.innerHTML = '';
+      container.innerHTML += `
+        <div class="flex" id="relasi-container"></div>
+        <h1 class="label">Produk Rekomendasi</h1>
+        <div class="grid-container"></div>
+      `;
+    
+      const identityContainer = document.querySelector('#relasi-container');
+      identityContainer.innerHTML = `
+        <div id="location-section">
+          <h1 class="location">Identitas</h1>
+          <table>
+            <tr>
+              <th>Nama Relasi</th>
+              <td>${identity[0]}</td>
+            </tr>
+            <tr>
+              <th>Garis Lintang</th>
+              <td>${identity[1]}</td>
+            </tr>
+            <tr>
+              <th>Garis Bujur</th>
+              <td>${identity[2]}</td>
+            </tr>
+            <tr>
+              <th>Provinsi</th>
+              <td>${identity[3]}</td>
+            </tr>
+          </table> 
+        </div>
+        <div id="condition-section">
+          <h1 class="condition">Kondisi Lokasi</h1>
+          <table>
+            <tr>
+              <th>Dominan Cuaca</th>
+              <td>${identity[4]}</td>
+            </tr>
+            <tr>
+              <th>Usia Mayoritas</th>
+              <td>${identity[5]} tahun</td>
+            </tr>
+          </table>
+        </div>
+      `;
+      
+      const gridContainer = document.querySelector('.grid-container');
+      for (const product of products) {
+        const productElement = document.createElement('div');
+        productElement.classList.add('grid-item');
+
+        productElement.innerHTML += `
+          <img src="./icon.png" alt="">
+          <p class="rating"">${product[12]}</p>
+          <div class="identity-content flex-column">
+            <p class="title">${product[1]}</p>
+            <p class="release-date">${product[3]}</p>
+          </div>
+          <div class="id-aaccess" id="${product[0]}"></div>
+        `;
+
+        gridContainer.appendChild(productElement);
+        productElement.addEventListener('click', event => {
+          const productId = event.target.id;
+
+          detailProduct(productId);
+        });
+      };
+    };
+
+    const detailProduct = (productId) => {
+      const product = findProduct(productId);
+      const container = document.querySelector('main');
+      container.innerHTML = '';
+      container.innerHTML += `
+        <form id="relasi-form">
+          <label for="relasi">Nama Relasi:</label><br>
+          <select id="relasi" name="relasi-select">
+            <option value="relasi1">Relasi 1</option>
+            <option value="relasi2">Relasi 2</option>
+            <option value="relasi3">Relasi 3</option>
+            <option value="relasi4">Relasi 4</option>
+          </select>
+          <button type="submit" id="submit-relasi-button">Cari Produk</button>
+        </form>
+        <div class="main-container"></div>
+        <div id="product-section"></div>
+      `;
+
+      let weatherCondition;
+      if (product[10] == 0) {
+        weatherCondition = 'Dominan digunakan pada cuaca dingin';
+      } else if (product[10] == 1) {
+        weatherCondition = 'Digunakan pada cuaca dingin dan panas';
+      } else {
+        weatherCondition = 'Dominan digunakan pada cuaca panas';
+      }
+
+      let ageOfUser;
+      if(product[11] == '[0]') {
+        ageOfUser = 'Obat untuk anak-anak';
+      } else if (product[11] == '[0,1]') {
+        ageOfUser = 'Obat untuk anak-anak dan remaja';
+      } else if (product[11] == '[2]') {
+        ageOfUser = 'Obat untuk orang dewasa';
+      } else {
+        ageOfUser = 'Obat untuk anak-anak dan dewasa';
+      }
+
+      const detailContainer = document.querySelector('#product-section');
+      detailContainer.innerHTML += `
+        <h1 class="product label">Identitas Produk</h1>
+        <p class="description">${product[6]}</p>
+        <h1 class="dosage label">Dosis Penggunaan</h1>
+        <p>${product[7]}</p>
+        <div class="flex">
+          <div id="indication">
+            <h1 class="indication label">Indikasi dan Kegunaan</h1>
+            <p>${product[5]}</p>
+          </div>
+          <div id="purpose">
+            <h1 class="purpose label">Tujuan</h1>
+            <p>${product[4]}</p>
+          </div>
+        </div>
+        <h1 class="condition label">Hasil Analisis</h1>
+        <table>
+          <tr>
+            <th>Poin hasil</th>
+            <td>${product[12]}</td>
+          </tr>
+          <tr>
+            <th>Kluster</th>
+            <td>${product[9]}</td>
+          </tr>
+          <tr>
+            <th>Kondisi Cuaca</th>
+            <td>${weatherCondition}</td>
+          </tr>
+          <tr>
+            <th>Umur Pengguna</th>
+            <td>${ageOfUser}</td>
+          </tr>
+        </table>
+      `;
+    }
+
+    const findProduct = (productId) => {
+      let product = null;
+      for (const element of products) {
+        if (element[0] == productId);
+        product = element;
+      }
+
+      return product;
+    }
+
+    // const findRelasiButton = document.querySelector('#submit-relasi-button');
+    // findRelasiButton.addEventListener('click', event => {
+    //   event.preventDefault();
+    //   const form = new FormData(document.getElementById('relasi-form'))
+    //   getRecommendation(parseInt(form.get('relasi-select')));
+    // })
+    const submitRelasi = (event) => {
+      event.preventDefault();
+      const form = new FormData(document.getElementById('relasi-form'))
+      getRecommendation(parseInt(form.get('relasi-select')));
+    }
+    //document.addEventListener('DOMContentLoaded', main);
+
+  //};
+</script>
+{% endblock %}
